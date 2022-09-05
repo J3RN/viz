@@ -11,7 +11,7 @@ defmodule Viz.Server do
 
   def handle_call(event, from, state)
 
-  def handle_call({{:remote_function, _meta, module, _name, _arity}, env}, _from, state) do
+  def handle_call({{:remote_function, _meta, module, name, _arity}, env}, _from, state) do
     target = clean_name(module)
     source = clean_name(env.module)
 
@@ -21,7 +21,7 @@ defmodule Viz.Server do
     #     {:reply, :ok, state}
 
     #   true ->
-        {:reply, :ok, MapSet.put(state, "\"#{source}\" -> \"#{target}\"")}
+    {:reply, :ok, MapSet.put(state, "#{source} --->|#{name}| #{target}")}
     # end
   end
 
@@ -38,7 +38,7 @@ defmodule Viz.Server do
     body = Enum.join(state, "\n")
 
     File.write("out.dot", """
-    digraph {
+    graph TD {
     #{body}
     }
     """)
