@@ -21,7 +21,7 @@ defmodule Viz.Server do
     #     {:reply, :ok, state}
 
     #   true ->
-    {:reply, :ok, MapSet.put(state, "#{source} --->|#{name}| #{target}")}
+    {:reply, :ok, MapSet.put(state, "\"#{source}\" -> \"#{target}\" [label = \"#{name}\"]")}
     # end
   end
 
@@ -38,7 +38,8 @@ defmodule Viz.Server do
     body = Enum.join(state, "\n")
 
     File.write("out.dot", """
-    graph TD {
+    digraph {
+    graph [ranksep = 4.0]
     #{body}
     }
     """)
