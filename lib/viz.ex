@@ -3,9 +3,15 @@ defmodule Viz do
   Compilation tracer that generates call graphs.
   """
 
+  alias __MODULE__.Server
+
   def trace(event, env) do
-    :ok = Application.ensure_started(:viz)
-    :ok = GenServer.call(Viz.Server, {event, env})
-    :ok
+    Server.log_event(event, env)
+  end
+
+  def export(exporter) do
+    Server.get_state()
+    |> exporter.export()
+    |> tap(&File.write("out.dot", &1))
   end
 end

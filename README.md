@@ -1,11 +1,20 @@
 # Viz
 
-**TODO: Add description**
+Vizualise your Elixir codebase.
+
+## Usage
+
+```
+$ mix viz
+```
+
+This will create an out.dot file which can then be converted into an image via GraphViz, e.g.
+
+```
+$ dot out.dot -Tsvg -o out.svg
+```
 
 ## Installation
-
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `viz` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -14,8 +23,3 @@ def deps do
   ]
 end
 ```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/viz>.
-

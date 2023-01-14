@@ -1,57 +1,46 @@
 defmodule Viz.Server do
-  use GenServer, shutdown: 1_000
+  use Agent
 
-  # Client
-  def start_link(_), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
-
-  def init(init) do
-    IO.puts("Starting!")
-    {:ok, MapSet.new(init)}
+  def start_link(_) do
+    Agent.start_link(fn -> MapSet.new() end, name: __MODULE__)
   end
 
-  def handle_call(event, from, state)
+  def log_event(event, env)
 
-  def handle_call({{:remote_function, _meta, module, name, _arity}, env}, _from, state) do
-    target = clean_name(module)
-    source = clean_name(env.module)
-
-    # cond do
-    #   # Ignore Erlang modules (for now at least)
-    #   not capitalized?(target) ->
-    #     {:reply, :ok, state}
-
-    #   true ->
-    {:reply, :ok, MapSet.put(state, "\"#{source}\" -> \"#{target}\" [label = \"#{name}\"]")}
-    # end
+  def log_event(
+        {remote, _meta, targetm, targetf, targeta},
+        %Macro.Env{module: sourcem, function: {sourcef, sourcea}}
+      )
+      when remote in [:remote_function, :remote_macro] do
+    do_log({sourcem, sourcef, sourcea}, {targetm, targetf, targeta})
   end
 
-  def handle_call({:stop, _env}, _from, state) do
-    write_state(state)
-    {:reply, :ok, state}
+  def log_event(
+        {local, _meta, targetf, targeta},
+        %Macro.Env{module: sourcem, function: {sourcef, sourcea}}
+      )
+      when local in [:local_function, :local_macro] do
+    do_log({sourcem, sourcef, sourcea}, {sourcem, targetf, targeta})
   end
 
-  def handle_call(_event, _from, state) do
-    {:reply, :ok, state}
-  end
+  def log_event(_event, _env), do: :ok
 
-  defp write_state(state) do
-    body = Enum.join(state, "\n")
-
-    File.write("out.dot", """
-    digraph {
-    graph [ranksep = 4.0]
-    #{body}
+  defp do_log({sourcem, sourcef, sourcea}, {targetm, targetf, targeta}) do
+    new_entry = {
+      {clean_name(sourcem), sourcef, sourcea},
+      {clean_name(targetm), targetf, targeta}
     }
-    """)
+
+    Agent.update(__MODULE__, &MapSet.put(&1, new_entry))
+  end
+
+  def get_state() do
+    Agent.get(__MODULE__, & &1)
   end
 
   defp clean_name(module) do
     module
     |> to_string()
     |> String.trim_leading("Elixir.")
-  end
-
-  defp capitalized?(name) do
-    name == String.capitalize(name)
   end
 end
