@@ -1,5 +1,14 @@
 defmodule Viz.Exporter.DotModules do
+  @moduledoc """
+  Exports a call-graph that show the relationships between different modules.
+  Each edge from one module to another is labelled with the function name of the
+  caller function.
+  """
+
   use Viz.Exporter
+
+  @impl Viz.Exporter
+  def default_filename(), do: "modules.dot"
 
   @impl Viz.Exporter
   def export(mappings) do

@@ -17,6 +17,7 @@ defmodule Viz.Exporter do
   """
 
   @callback export(MapSet.t({mfa, mfa})) :: String.t()
+  @callback default_filename() :: String.t()
 
   defmacro __using__(_opts) do
     quote do

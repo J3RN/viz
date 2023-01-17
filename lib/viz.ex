@@ -9,9 +9,13 @@ defmodule Viz do
     Server.log_event(event, env)
   end
 
-  def export(exporter) do
+  def export(exporter, opts \\ []) do
+    [filename: filename] = Keyword.validate!(opts, filename: exporter.default_filename())
+
     Server.get_state()
     |> exporter.export()
-    |> tap(&File.write("out.dot", &1))
+    |> tap(&File.write(filename, &1))
+
+    filename
   end
 end

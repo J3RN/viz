@@ -2,6 +2,9 @@ defmodule Viz.Exporter.Dot do
   use Viz.Exporter
 
   @impl Viz.Exporter
+  def default_filename(), do: "out.dot"
+
+  @impl Viz.Exporter
   def export(mappings) do
     modules =
       Enum.reduce(mappings, %{}, fn {{sourcem, sourcef, sourcea}, {targetm, targetf, targeta}},

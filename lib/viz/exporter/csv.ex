@@ -6,6 +6,10 @@ defmodule Viz.Exporter.CSV do
 
   use Viz.Exporter
 
+  @impl Viz.Exporter
+  def default_filename(), do: "out.csv"
+
+  @impl Viz.Exporter
   def export(mappings) do
     csv_header = "source,target\n"
 
