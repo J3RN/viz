@@ -5,11 +5,11 @@ defmodule Mix.Tasks.Viz do
   @shortdoc "Creates a vizualization data file from the codebase"
   @impl Mix.Task
   def run(args) do
-    {opts, _rest} = OptionParser.parse!(args, strict: [exporter: :string, filename: :string])
+    {opts, _rest} = OptionParser.parse!(args, strict: [format: :string, filename: :string])
 
-    {exporter_str, other_opts} = Keyword.pop(opts, :exporter, "CSV")
+    {format, other_opts} = Keyword.pop(opts, :format, "CSV")
 
-    exporter_str
+    format
     |> string_to_exporter_module()
     |> do_run(other_opts)
   end
