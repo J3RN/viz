@@ -16,7 +16,19 @@ You may specify a different filename with the `--filename` flag, e.g.
 $ mix viz --filename myapp.csv
 ```
 
-Formats other than the CSV format are available.  They are:
+You can also export the call-graph for only a "slice" of your program.  For instance, if you only want data on calls made in the course of the computation of `MyApp.foo/2`, you would write:
+
+```
+$ mix viz --slice MyApp.foo/2
+```
+
+Multiple slices are supported and are "or"ed together.  That is, if you want data on calls made in the course of the computation of `MyApp.foo/2` and `MyApp.bar/1`, you would write:
+
+```
+$ mix viz --slice MyApp.foo/2 --slice MyApp.bar/1
+```
+
+Export formats other than the CSV format are available.  They are:
 - `dot`
 - `dot_functions`
 - `dot_modules`
@@ -28,7 +40,7 @@ Alternative formats are specified with the `--format` flag, e.g.
 $ mix viz --exporter dot
 ```
 
-The first three use the [GraphViz DOT language](https://graphviz.org/doc/info/lang.html) to illustrate your call-graph.  Once you have created a `.dot` file, you can use a GraphViz tool, e.g. `dot` to visualize the call-graph:
+The first three use the [GraphViz DOT language](https://graphviz.org/doc/info/lang.html) to illustrate your call-graph.  Once you have created a `.dot` file, you can use a GraphViz tool (e.g. `dot`) to visualize the call-graph:
 
 ```
 $ dot out.dot -Tsvg -o out.svg
