@@ -7,10 +7,13 @@ defmodule Mix.Tasks.Viz do
   def run(args) do
     with {opts, [], []} <- parse_args(args),
          {format, other_opts} = Keyword.pop(opts, :format, "CSV"),
-         {slices, other_opts} = Keyword.pop_values(other_opts, :slice),
+         {sources, other_opts} = Keyword.pop_values(other_opts, :source),
+         {sinks, other_opts} = Keyword.pop_values(other_opts, :sink),
          {:ok, exporter_module} <- format_to_exporter_module(format),
-         {:ok, slices} <- parse_slices(slices),
-         {:ok, filename} <- do_run(exporter_module, [{:slices, slices} | other_opts]) do
+         {:ok, sources} <- parse_funs(sources),
+         {:ok, sinks} <- parse_funs(sinks),
+         opts <- Keyword.merge([sinks: sinks, sources: sources], other_opts),
+         {:ok, filename} <- do_run(exporter_module, opts) do
       Mix.Shell.IO.info("Call graph written to #{filename}!")
     else
       error -> print_result(error)
@@ -18,7 +21,14 @@ defmodule Mix.Tasks.Viz do
   end
 
   defp parse_args(args) do
-    OptionParser.parse(args, strict: [filename: :string, format: :string, slice: [:string, :keep]])
+    OptionParser.parse(args,
+      strict: [
+        filename: :string,
+        format: :string,
+        source: [:string, :keep],
+        sink: [:string, :keep]
+      ]
+    )
   end
 
   defp do_run(exporter, opts) do
@@ -42,8 +52,8 @@ defmodule Mix.Tasks.Viz do
     end
   end
 
-  defp parse_slices(slices) do
-    slices
+  defp parse_funs(sources) do
+    sources
     |> Enum.map(&dehash/1)
     |> Enum.split_with(&match?({:ok, _}, &1))
     |> case do
@@ -74,7 +84,7 @@ defmodule Mix.Tasks.Viz do
 
       {:error, :bad_hashes, hashes} ->
         Mix.Shell.IO.error(
-          "Could not parse slice sources into MFA tuples: #{Enum.join(hashes, ", ")}"
+          "Could not parse functions into MFA tuples: #{Enum.join(hashes, ", ")}"
         )
 
       {:error, :unknown_options, opt_names} ->

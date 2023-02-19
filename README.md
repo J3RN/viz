@@ -19,14 +19,22 @@ $ mix viz --filename myapp.csv
 You can also export the call-graph for only a "slice" of your program.  For instance, if you only want data on calls made in the course of the computation of `MyApp.foo/2`, you would write:
 
 ```
-$ mix viz --slice MyApp.foo/2
+$ mix viz --source MyApp.foo/2
 ```
 
-Multiple slices are supported and are "or"ed together.  That is, if you want data on calls made in the course of the computation of `MyApp.foo/2` and `MyApp.bar/1`, you would write:
+Multiple sources are supported and are "or"ed together.  That is, if you want data on calls made in the course of the computation of `MyApp.foo/2` and `MyApp.bar/1`, you would write:
 
 ```
-$ mix viz --slice MyApp.foo/2 --slice MyApp.bar/1
+$ mix viz --source MyApp.foo/2 --source MyApp.bar/1
 ```
+
+Additionally, specifying "sinks" is also supported.  Specifying a sink is a way to determine what functions depend on another;  e.g. if you want data on functions that reference `MyApp.foo/2` and functions that references those functions, you would write:
+
+```
+$ mix viz --sink MyApp.foo/2
+```
+
+Multiple sinks are supported and can be combined with sources to find paths from one (or more) function to another (or several).
 
 Export formats other than the CSV format are available.  They are:
 - `dot`
