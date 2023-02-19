@@ -24,7 +24,7 @@ defmodule Viz.Exporter.Dot do
         """
         subgraph "cluster_#{mod}" {
           label = "#{mod}";
-          style = filled;
+          style = "rounded,filled";
           color = lightgrey;
           node [style=filled, color=white];
           #{function_listing}
