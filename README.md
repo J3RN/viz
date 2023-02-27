@@ -61,6 +61,14 @@ This command creates an `out.svg` file which you can view in your browser.
 
 ## Installation
 
+The recommended approach is to install this application as an Elixir Archive:
+
+```
+$ mix archive.install github J3RN/viz
+```
+
+Alternatively, you can add Viz as a dependency of your application:
+
 ```elixir
 def deps do
   [
@@ -68,5 +76,3 @@ def deps do
   ]
 end
 ```
-
-I hope to one day make this an escript so you don't have to add it to your project, but I've yet to figure that out.
