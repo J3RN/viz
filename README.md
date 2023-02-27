@@ -39,6 +39,7 @@ Multiple sinks are supported and can be combined with sources to find paths from
 Export formats other than the CSV format are available.  They are:
 - `dot`
 - `dot_functions`
+- `dot_hier`
 - `dot_modules`
 - `json`
 
@@ -48,7 +49,7 @@ Alternative formats are specified with the `--format` flag, e.g.
 $ mix viz --exporter dot
 ```
 
-The first three use the [GraphViz DOT language](https://graphviz.org/doc/info/lang.html) to illustrate your call-graph.  Once you have created a `.dot` file, you can use a GraphViz tool (e.g. `dot`) to visualize the call-graph:
+The first four use the [GraphViz DOT language](https://graphviz.org/doc/info/lang.html) to illustrate your call-graph.  Once you have created a `.dot` file, you can use a GraphViz tool (e.g. `dot`) to visualize the call-graph:
 
 ```
 $ dot out.dot -Tsvg -o out.svg
