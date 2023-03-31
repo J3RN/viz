@@ -23,10 +23,8 @@ defmodule Viz.Exporter.JSON do
 
   @impl Viz.Exporter
   def export(mappings) do
-    modules =
-      Enum.flat_map(mappings, fn {{sourcem, _, _}, {targetm, _, _}} -> [sourcem, targetm] end)
-
     functions = Enum.flat_map(mappings, &Tuple.to_list/1)
+    modules = Enum.flat_map(functions, &[elem(&1, 0), elem(&1, 1)])
 
     nodes =
       Enum.map(modules, fn mod ->
