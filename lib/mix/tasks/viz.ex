@@ -2,18 +2,21 @@ defmodule Mix.Tasks.Viz do
   @moduledoc "The mix task Viz"
   use Mix.Task
 
+  @defaults [format: "CSV"]
+
+  defmodule Options do
+    defstruct [:filename, :format, :sources, :sinks]
+  end
+
   @shortdoc "Creates a call graph data file from the codebase"
   @impl Mix.Task
   def run(args) do
-    with {opts, [], []} <- parse_args(args),
-         {format, other_opts} = Keyword.pop(opts, :format, "CSV"),
-         {sources, other_opts} = Keyword.pop_values(other_opts, :source),
-         {sinks, other_opts} = Keyword.pop_values(other_opts, :sink),
+    with %Options{filename: filename, format: format, sources: sources, sinks: sinks} <-
+           parse_args(args),
          {:ok, exporter_module} <- format_to_exporter_module(format),
          {:ok, sources} <- parse_funs(sources),
          {:ok, sinks} <- parse_funs(sinks),
-         opts <- Keyword.merge([sinks: sinks, sources: sources], other_opts),
-         {:ok, filename} <- do_run(exporter_module, opts) do
+         {:ok, filename} <- do_run(exporter_module, filename, sources, sinks) do
       Mix.Shell.IO.info("Call graph written to #{filename}!")
     else
       error -> print_result(error)
@@ -29,12 +32,30 @@ defmodule Mix.Tasks.Viz do
         sink: [:string, :keep]
       ]
     )
+    |> to_options()
   end
 
-  defp do_run(exporter, opts) do
+  defp to_options({opts, [], []}) do
+    with opts <- Keyword.merge(@defaults, opts),
+         {filename, other_opts} = Keyword.pop(opts, :filename),
+         {format, other_opts} = Keyword.pop(other_opts, :format),
+         {sources, other_opts} = Keyword.pop_values(other_opts, :source),
+         {sinks, _other_opts} = Keyword.pop_values(other_opts, :sink) do
+      %Options{
+        filename: filename,
+        format: format,
+        sources: sources,
+        sinks: sinks
+      }
+    end
+  end
+
+  defp to_options(tuple), do: tuple
+
+  defp do_run(exporter, filename, sources, sinks) do
     :ok = Application.ensure_started(:viz)
     Mix.Task.run("compile", ["--force", "--tracer", "Viz"])
-    Viz.export(exporter, opts)
+    Viz.export(exporter, filename, sources, sinks)
   end
 
   # This is dark magic, but allows for third parties to provide exporters (I think)
@@ -86,9 +107,6 @@ defmodule Mix.Tasks.Viz do
         Mix.Shell.IO.error(
           "Could not parse functions into MFA tuples: #{Enum.join(hashes, ", ")}"
         )
-
-      {:error, :unknown_options, opt_names} ->
-        Mix.Shell.IO.error("Unknown options: #{Enum.join(opt_names, ", ")}")
 
       {_opts, positional, flags} ->
         if(Enum.any?(positional), do: print_positional_errors(positional))

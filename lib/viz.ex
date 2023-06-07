@@ -11,23 +11,19 @@ defmodule Viz do
     Viz.Server.log_event(event, env)
   end
 
-  def export(exporter, opts \\ []) do
-    with {:ok, opts} <-
-           Keyword.validate(opts, filename: exporter.default_filename(), sinks: nil, sources: nil) do
-      filename = Keyword.get(opts, :filename)
-      sources = Keyword.get(opts, :sources)
-      sinks = Keyword.get(opts, :sinks)
+  @typep pseudo_mfa :: {String.t(), atom(), integer()}
+  @spec export(module(), String.t(), [pseudo_mfa()] | nil, [pseudo_mfa()] | nil) ::
+          {:ok, String.t()}
+  def export(exporter, filename, sources, sinks) do
+    filename = filename || exporter.default_filename()
 
-      Server.get_mappings()
-      |> then(&if(sources, do: source(sources, &1), else: &1))
-      |> then(&if(sinks, do: sink(sinks, &1), else: &1))
-      |> exporter.export()
-      |> then(&File.write(filename, &1))
+    Server.get_mappings()
+    |> then(&if(sources, do: source(sources, &1), else: &1))
+    |> then(&if(sinks, do: sink(sinks, &1), else: &1))
+    |> exporter.export()
+    |> then(&File.write(filename, &1))
 
-      {:ok, filename}
-    else
-      {:error, opt_names} -> {:error, :unknown_options, opt_names}
-    end
+    {:ok, filename}
   end
 
   # Performs what is roughly program slicing, where the target variable in the
