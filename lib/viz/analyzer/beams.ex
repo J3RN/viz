@@ -110,9 +110,11 @@ defmodule Viz.Analyzer.Beams do
   end
 
   defp calls_in_ast(caller, {:call, _anno, callee, args}) do
+    arg_calls = Enum.flat_map(args, &calls_in_ast(caller, &1))
+
     case normalize_callee(caller, callee, length(args)) do
-      {:ok, callee} -> [{caller, callee}]
-      :error -> []
+      {:ok, callee} -> [{caller, callee} | arg_calls]
+      :error -> calls_in_ast(caller, callee) ++ arg_calls
     end
   end
 
