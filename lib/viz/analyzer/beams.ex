@@ -287,28 +287,28 @@ defmodule Viz.Analyzer.Beams do
   end
 
   defp normalize_callee(
-         {module, _, _},
-         {:fun, _anno, {:function, {:atom, _anno2, fun_name}, {:integer, _anno3, arity}}},
-         arity
+         caller,
+         {:var, _anno, _var_name},
+         _arity
        ) do
-    {:ok, {module, fun_name, arity}}
+    IO.puts("Unable to derive calls from variable invoked as function in #{debug_caller(caller)}")
+
+    :error
   end
 
   defp normalize_callee(
          _caller,
-         {:fun, _anno,
-          {:function, {:atom, _anno2, module}, {:atom, _anno3, fun_name},
-           {:integer, _anno4, arity}}},
-         arity
+         _callee,
+         _arity
        ) do
-    {:ok, {module, fun_name, arity}}
+    :error
   end
 
-  defp normalize_callee({mod, fun, arity}, callee, _) do
-    IO.inspect(callee,
-      label: "Unknown callee form in #{Viz.Exporter.Utils.hash({clean_name(mod), fun, arity})}"
-    )
+  defp debug_caller({mod, fun, arity}) when is_atom(mod) and is_atom(fun) and is_integer(arity) do
+    Viz.Exporter.Utils.hash({clean_name(mod), fun, arity})
+  end
 
-    :error
+  defp debug_caller(caller) do
+    inspect(caller)
   end
 end
