@@ -33,7 +33,8 @@ defmodule Viz.Exporter.Dot do
       end)
 
     calls =
-      Enum.map(mappings, fn {source, target} ->
+      mappings
+      |> Enum.map(fn {source, target} ->
         ~s|"#{hash(source)}" -> "#{hash(target)}";|
       end)
       |> Enum.join("\n")
