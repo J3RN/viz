@@ -44,7 +44,7 @@ defmodule Viz.Analyzer.Beams do
     end)
   end
 
-  defp clean_name(module) do
+  defp clean_name(module) when is_atom(module) do
     module
     |> to_string()
     |> String.trim_leading("Elixir.")
@@ -259,8 +259,17 @@ defmodule Viz.Analyzer.Beams do
   # the BEAM can include _today_, but this clause provides future-proofing.
   defp calls_in_ast(_caller, _unknown_ast), do: []
 
-  @spec normalize_callee(mfa, tuple(), non_neg_integer()) :: {:ok, mfa} | :error
-  defp normalize_callee({module, _, _}, {:atom, _anno, fun_name}, arity) do
+  @spec normalize_callee(
+          caller :: mfa,
+          callee :: tuple(),
+          arity :: non_neg_integer()
+        ) :: {:ok, mfa} | :error
+  defp normalize_callee(
+         {module, _, _},
+         {:atom, _anno, fun_name},
+         arity
+       )
+       when is_atom(module) and is_atom(fun_name) and is_integer(arity) do
     {:ok, {module, fun_name, arity}}
   end
 
@@ -268,7 +277,8 @@ defmodule Viz.Analyzer.Beams do
          _caller,
          {:remote, _anno, {:atom, _anno2, module}, {:atom, _anno3, fun_name}},
          arity
-       ) do
+       )
+       when is_atom(module) and is_atom(fun_name) and is_integer(arity) do
     {:ok, {module, fun_name, arity}}
   end
 
