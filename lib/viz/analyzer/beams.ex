@@ -97,7 +97,11 @@ defmodule Viz.Analyzer.Beams do
     [{caller, {module, name, arity}}]
   end
 
-  defp calls_in_ast(caller, {:fun, _anno, {:function, module, name, arity}}) do
+  defp calls_in_ast(
+         caller,
+         {:fun, _anno,
+          {:function, {:atom, _anno2, module}, {:atom, _anno3, name}, {:integer, _anno4, arity}}}
+       ) do
     [{caller, {module, name, arity}}]
   end
 
