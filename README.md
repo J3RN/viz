@@ -46,7 +46,7 @@ Export formats other than the CSV format are available.  They are:
 Alternative formats are specified with the `--format` flag, e.g.
 
 ```
-$ mix viz --exporter dot
+$ mix viz --format dot
 ```
 
 The first four use the [GraphViz DOT language](https://graphviz.org/doc/info/lang.html) to illustrate your call-graph.  Once you have created a `.dot` file, you can use a GraphViz tool (e.g. `dot`) to visualize the call-graph:
