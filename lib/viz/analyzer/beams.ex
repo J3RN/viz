@@ -42,6 +42,7 @@ defmodule Viz.Analyzer.Beams do
     |> Enum.map(fn {{mod1, fun1, arity1}, {mod2, fun2, arity2}} ->
       {{clean_name(mod1), fun1, arity1}, {clean_name(mod2), fun2, arity2}}
     end)
+    |> Enum.uniq()
   end
 
   defp clean_name(module) when is_atom(module) do
