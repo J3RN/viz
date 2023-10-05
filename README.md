@@ -1,6 +1,6 @@
 # Viz
 
-Vizualise your Elixir codebase (kinda).
+Visualize the call graph for your Elixir codebase.
 
 ## Usage
 
@@ -37,10 +37,10 @@ $ mix viz --sink MyApp.foo/2
 Multiple sinks are supported and can be combined with sources to find paths from one (or more) function to another (or several).
 
 Export formats other than the CSV format are available.  They are:
-- `dot`
-- `dot_functions`
-- `dot_hier`
-- `dot_modules`
+- `dot_hier` :: Function nodes are grouped into module nodes.  Module nodes are grouped by hierarchy (e.g. The `MyApp.Foo` node will be inside the `MyApp` node).
+- `dot` :: Function nodes are grouped into module nodes.  Module nodes are not grouped.
+- `dot_functions` :: Function nodes are not grouped; module nodes do not exist.
+- `dot_modules` :: Only connections between module nodes are shown.  Function nodes do not exist.
 - `json`
 
 Alternative formats are specified with the `--format` flag, e.g.
