@@ -2,21 +2,37 @@ defmodule Mix.Tasks.Viz do
   @moduledoc "The mix task Viz"
   use Mix.Task
 
-  @defaults [format: "CSV"]
+  @option_format [
+    strict: [
+      analyzer: [:string, :keep],
+      filename: :string,
+      format: :string,
+      source: [:string, :keep],
+      sink: [:string, :keep]
+    ]
+  ]
+  @defaults [format: "CSV", analyzer: "beams", analyzer: "tracer"]
 
   defmodule Options do
-    defstruct [:filename, :format, :sources, :sinks]
+    defstruct [:analyzers, :filename, :format, :sources, :sinks]
   end
 
   @shortdoc "Creates a call graph data file from the codebase"
   @impl Mix.Task
   def run(args) do
-    with %Options{filename: filename, format: format, sources: sources, sinks: sinks} <-
-           parse_args(args),
+    with {:ok,
+          %Options{
+            analyzers: analyzers,
+            filename: filename,
+            format: format,
+            sources: sources,
+            sinks: sinks
+          }} <- parse_args(args),
          {:ok, exporter_module} <- format_to_exporter_module(format),
+         {:ok, analyzers} <- load_analyzers(analyzers),
          {:ok, sources} <- parse_funs(sources),
          {:ok, sinks} <- parse_funs(sinks),
-         {:ok, filename} <- do_run(exporter_module, filename, sources, sinks) do
+         {:ok, filename} <- do_run(analyzers, exporter_module, filename, sources, sinks) do
       Mix.Shell.IO.info("Call graph written to #{filename}!")
     else
       error -> print_result(error)
@@ -24,38 +40,46 @@ defmodule Mix.Tasks.Viz do
   end
 
   defp parse_args(args) do
-    OptionParser.parse(args,
-      strict: [
-        filename: :string,
-        format: :string,
-        source: [:string, :keep],
-        sink: [:string, :keep]
-      ]
-    )
+    args
+    |> OptionParser.parse(@option_format)
     |> to_options()
   end
 
   defp to_options({opts, [], []}) do
-    with opts <- Keyword.merge(@defaults, opts),
-         {filename, other_opts} = Keyword.pop(opts, :filename),
+    opts = Keyword.merge(@defaults, opts)
+
+    with {analyzers, other_opts} = Keyword.pop_values(opts, :analyzer),
+         {filename, other_opts} = Keyword.pop(other_opts, :filename),
          {format, other_opts} = Keyword.pop(other_opts, :format),
          {sources, other_opts} = Keyword.pop_values(other_opts, :source),
          {sinks, _other_opts} = Keyword.pop_values(other_opts, :sink) do
-      %Options{
-        filename: filename,
-        format: format,
-        sources: sources,
-        sinks: sinks
-      }
+      {:ok,
+       %Options{
+         analyzers: analyzers,
+         filename: filename,
+         format: format,
+         sources: sources,
+         sinks: sinks
+       }}
     end
   end
 
-  defp to_options(tuple), do: tuple
+  defp to_options({_opts, positional, flags}), do: {:error, :bad_options, positional, flags}
 
-  defp do_run(exporter, filename, sources, sinks) do
-    :ok = Application.ensure_started(:viz)
-    Mix.Task.run("compile", ["--force", "--tracer", "Viz"])
-    Viz.export(exporter, filename, sources, sinks)
+  defp do_run(analyzers, exporter, filename, sources, sinks) do
+    analyzers
+    |> Enum.flat_map(& &1.analyze())
+    |> Enum.uniq()
+    |> Viz.export(exporter, filename, sources, sinks)
+  end
+
+  def load_analyzers(strs) do
+    strs
+    |> Enum.map(&format_to_analyzer_module/1)
+    |> Enum.reduce_while({:ok, []}, fn
+      {:ok, mod}, {:ok, analyzers} -> {:cont, {:ok, [mod | analyzers]}}
+      error, _acc -> {:halt, error}
+    end)
   end
 
   # This is dark magic, but allows for third parties to provide exporters (I think)
@@ -70,6 +94,21 @@ defmodule Mix.Tasks.Viz do
       {:ok, exporter}
     else
       {:error, reason} -> {:error, :could_not_load_exporter, reason}
+    end
+  end
+
+  # Same dark magic
+  defp format_to_analyzer_module(str) do
+    analyzer =
+      str
+      |> Macro.camelize()
+      |> then(&("Elixir.Viz.Analyzer." <> &1))
+      |> String.to_atom()
+
+    with {:module, analyzer} <- Code.ensure_loaded(analyzer) do
+      {:ok, analyzer}
+    else
+      {:error, reason} -> {:error, :could_not_load_analyzer, reason}
     end
   end
 
@@ -103,12 +142,15 @@ defmodule Mix.Tasks.Viz do
       {:error, :could_not_load_exporter, reason} ->
         Mix.Shell.IO.error("Could not load exporter: #{inspect(reason)}")
 
+      {:error, :could_not_load_analyzer, reason} ->
+        Mix.Shell.IO.error("Could not load analyzer: #{inspect(reason)}")
+
       {:error, :bad_hashes, hashes} ->
         Mix.Shell.IO.error(
           "Could not parse functions into MFA tuples: #{Enum.join(hashes, ", ")}"
         )
 
-      {_opts, positional, flags} ->
+      {:error, :bad_options, positional, flags} ->
         if(Enum.any?(positional), do: print_positional_errors(positional))
         if(Enum.any?(flags), do: print_flag_errors(flags))
     end

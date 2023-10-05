@@ -1,4 +1,4 @@
-defmodule Viz.Server do
+defmodule Viz.Analyzer.Tracer.Server do
   use Agent
 
   def start_link(_) do

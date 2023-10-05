@@ -57,7 +57,20 @@ $ dot out.dot -Tsvg -o out.svg
 
 This command creates an `out.svg` file which you can view in your browser.
 
-`dot` tries to create a heirarchy of nodes.  If this view is unhelpful to you, try `fdp` which uses force-directed placement to lay out nodes in a cluster.
+The `dot` tool tries to create a heirarchy of nodes.  If this view is unhelpful to you, try `fdp` which uses force-directed placement to lay out nodes in a cluster.
+
+This tool currently has two "analyzers" to find function calls; "tracer" and "beams".  The former uses an [Elixir compilation tracer] to aggregate call events from the Elixir compiler while the application is being compiled, the latter analyzes the `.beam` files produced when your application is compiled (a la Dialyzer).  Each has strengths and weaknesses.  The beams analyzer is not aware of macros whereas the tracer analyzer is.  On the other hand, the tracer analyzer can't see when a function call is injected into a function *by* a macro, whereas the beams analyzer can.  Thus, the default behavior is to use *both* analyzers, but if you have a specific need (e.g. speed), you can specify only one or the other.
+
+To only use the "beams" analyzer (which much faster if your app is already compiled), invoke `mix viz` like so:
+```
+$ mix viz --analyzer beams
+```
+
+To only use the "tracer" analyzer, invoke `mix viz` like so:
+```
+$ mix viz --analyzer tracer
+```
+
 
 ## Installation
 
@@ -76,3 +89,5 @@ def deps do
   ]
 end
 ```
+
+[Elixir compilation tracer]: https://hexdocs.pm/elixir/Code.html#module-compilation-tracers

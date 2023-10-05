@@ -3,21 +3,20 @@ defmodule Viz do
   Compilation tracer that generates call graphs.
   """
 
-  alias __MODULE__.Server
-
   @typep pseudo_mfa :: {String.t(), atom(), integer()}
-  @type calls :: [{callers :: pseudo_mfa(), callee :: pseudo_mfa()}]
+  @type calls :: [{caller :: pseudo_mfa(), callee :: pseudo_mfa()}]
 
-  def trace(event, env) do
-    Viz.Server.log_event(event, env)
-  end
-
-  @spec export(module(), String.t(), [pseudo_mfa()] | nil, [pseudo_mfa()] | nil) ::
-          {:ok, String.t()}
-  def export(exporter, filename, sources, sinks) do
+  @spec export(
+          calls(),
+          module(),
+          String.t() | nil,
+          [pseudo_mfa()] | nil,
+          [pseudo_mfa()] | nil
+        ) :: {:ok, String.t()}
+  def export(calls, exporter, filename, sources, sinks) do
     filename = filename || exporter.default_filename()
 
-    Server.get_calls()
+    calls
     |> then(&if(sources, do: source(sources, &1), else: &1))
     |> then(&if(sinks, do: sink(sinks, &1), else: &1))
     |> exporter.export()
