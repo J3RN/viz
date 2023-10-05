@@ -34,7 +34,7 @@ defmodule Viz.Server do
     Agent.update(__MODULE__, &MapSet.put(&1, new_entry))
   end
 
-  def get_mappings() do
+  def get_calls() do
     Agent.get(__MODULE__, & &1)
   end
 
