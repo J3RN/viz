@@ -10,13 +10,15 @@ defmodule Viz do
           calls(),
           module(),
           String.t() | nil,
+          [String.t()],
           [pseudo_mfa()] | nil,
           [pseudo_mfa()] | nil
         ) :: {:ok, String.t()}
-  def export(calls, exporter, filename, sources, sinks) do
+  def export(calls, exporter, filename, namespaces, sources, sinks) do
     filename = filename || exporter.default_filename()
 
     calls
+    |> then(&if(Enum.any?(namespaces), do: scope(namespaces, &1), else: &1))
     |> then(&if(sources, do: source(sources, &1), else: &1))
     |> then(&if(sinks, do: sink(sinks, &1), else: &1))
     |> exporter.export()
@@ -47,5 +49,15 @@ defmodule Viz do
     callers = Enum.map(calls, &elem(&1, 0))
 
     calls ++ sink(callers, other_calls)
+  end
+
+  defp scope(namespaces, calls) do
+    Enum.filter(calls, fn {caller, callee} ->
+      namespaced_by?(namespaces, caller) and namespaced_by?(namespaces, callee)
+    end)
+  end
+
+  defp namespaced_by?(namespaces, {mod, _fun, _arity}) do
+    Enum.any?(namespaces, &String.starts_with?(mod, &1))
   end
 end

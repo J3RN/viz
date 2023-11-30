@@ -23,7 +23,7 @@ defmodule Viz.Exporter.DotHier do
     function_listing =
       mappings
       |> Enum.map(fn {source, target} ->
-        ~s|"#{hash(source)}" -> "#{hash(target)}"|
+        ~s|"#{hash(source)}" -> "#{hash(target)}" [label="#{hash(source)} -> #{hash(target)}" fontsize=0]|
       end)
       |> Enum.join("\n")
 

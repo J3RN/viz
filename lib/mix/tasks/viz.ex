@@ -7,6 +7,7 @@ defmodule Mix.Tasks.Viz do
       analyzer: [:string, :keep],
       filename: :string,
       format: :string,
+      namespace: [:string, :keep],
       source: [:string, :keep],
       sink: [:string, :keep]
     ]
@@ -14,7 +15,7 @@ defmodule Mix.Tasks.Viz do
   @defaults [format: "CSV", analyzer: "beams", analyzer: "tracer"]
 
   defmodule Options do
-    defstruct [:analyzers, :filename, :format, :sources, :sinks]
+    defstruct [:analyzers, :filename, :format, :namespaces, :sources, :sinks]
   end
 
   @shortdoc "Creates a call graph data file from the codebase"
@@ -25,6 +26,7 @@ defmodule Mix.Tasks.Viz do
             analyzers: analyzers,
             filename: filename,
             format: format,
+            namespaces: namespaces,
             sources: sources,
             sinks: sinks
           }} <- parse_args(args),
@@ -32,7 +34,8 @@ defmodule Mix.Tasks.Viz do
          {:ok, analyzers} <- load_analyzers(analyzers),
          {:ok, sources} <- parse_funs(sources),
          {:ok, sinks} <- parse_funs(sinks),
-         {:ok, filename} <- do_run(analyzers, exporter_module, filename, sources, sinks) do
+         {:ok, filename} <-
+           do_run(analyzers, exporter_module, filename, namespaces, sources, sinks) do
       Mix.Shell.IO.info("Call graph written to #{filename}!")
     else
       error -> print_result(error)
@@ -51,6 +54,7 @@ defmodule Mix.Tasks.Viz do
     with {analyzers, other_opts} = Keyword.pop_values(opts, :analyzer),
          {filename, other_opts} = Keyword.pop(other_opts, :filename),
          {format, other_opts} = Keyword.pop(other_opts, :format),
+         {namespaces, other_opts} = Keyword.pop_values(other_opts, :namespace),
          {sources, other_opts} = Keyword.pop_values(other_opts, :source),
          {sinks, _other_opts} = Keyword.pop_values(other_opts, :sink) do
       {:ok,
@@ -58,6 +62,7 @@ defmodule Mix.Tasks.Viz do
          analyzers: analyzers,
          filename: filename,
          format: format,
+         namespaces: namespaces,
          sources: sources,
          sinks: sinks
        }}
@@ -66,11 +71,11 @@ defmodule Mix.Tasks.Viz do
 
   defp to_options({_opts, positional, flags}), do: {:error, :bad_options, positional, flags}
 
-  defp do_run(analyzers, exporter, filename, sources, sinks) do
+  defp do_run(analyzers, exporter, filename, namespaces, sources, sinks) do
     analyzers
     |> Enum.flat_map(& &1.analyze())
     |> Enum.uniq()
-    |> Viz.export(exporter, filename, sources, sinks)
+    |> Viz.export(exporter, filename, namespaces, sources, sinks)
   end
 
   def load_analyzers(strs) do
