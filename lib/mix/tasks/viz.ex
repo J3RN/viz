@@ -20,6 +20,7 @@ defmodule Mix.Tasks.Viz do
   @shortdoc "Creates a call graph data file from the codebase"
   @impl Mix.Task
   def run(args) do
+    Code.ensure_all_loaded!([Viz, Viz.Exporter.Utils])
     with {:ok,
           %Options{
             analyzers: analyzers,
