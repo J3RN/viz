@@ -2,6 +2,10 @@
 
 Visualize the call graph for your Elixir codebase.
 
+![Call graph with source Ecto.assoc/3](./Ecto.assoc.svg)
+
+(Click on the image and then click "Raw" in the top-right to view the full interactive version)
+
 ## Usage
 
 ```
