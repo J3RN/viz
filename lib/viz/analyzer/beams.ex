@@ -38,6 +38,9 @@ defmodule Viz.Analyzer.Beams do
       # represent this.
       {:attribute, _anno, _, _} ->
         []
+
+      {:eof, _} ->
+        []
     end)
     |> Enum.map(fn {{mod1, fun1, arity1}, {mod2, fun2, arity2}} ->
       {{clean_name(mod1), fun1, arity1}, {clean_name(mod2), fun2, arity2}}
