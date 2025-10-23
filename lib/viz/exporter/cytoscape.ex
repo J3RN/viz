@@ -1,4 +1,4 @@
-defmodule Viz.Exporter.JSON do
+defmodule Viz.Exporter.Cytoscape do
   @moduledoc """
   Produces a JSON file containing a list of nodes and edges.
 
