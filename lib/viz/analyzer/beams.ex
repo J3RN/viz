@@ -1,7 +1,7 @@
 defmodule Viz.Analyzer.Beams do
   @behaviour Viz.Analyzer
 
-  @spec analyze() :: Viz.calls()
+  @spec analyze() :: [Viz.call()]
   def analyze() do
     if Mix.Project.umbrella?(),
       do: Mix.raise("I'm really sorry, but umbrellas aren't supported just yet")
@@ -22,7 +22,7 @@ defmodule Viz.Analyzer.Beams do
 
   # 8.1: Module Declarations and Forms
 
-  @spec calls_in_file(charlist()) :: Viz.calls()
+  @spec calls_in_file(charlist()) :: [Viz.call()]
   def calls_in_file(beam_file) do
     {:ok, {module, [abstract_code: {:raw_abstract_v1, abstract_code}]}} =
       :beam_lib.chunks(beam_file, [:abstract_code])

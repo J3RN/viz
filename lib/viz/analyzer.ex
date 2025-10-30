@@ -5,5 +5,5 @@ defmodule Viz.Analyzer do
 
   # It feels weird passing *nothing* here, but the analyzers that I've written
   # pull the information they need from the environment.
-  @callback analyze() :: Viz.calls()
+  @callback analyze() :: [Viz.call()]
 end

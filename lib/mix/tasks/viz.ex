@@ -141,6 +141,7 @@ defmodule Mix.Tasks.Viz do
   @impl Mix.Task
   def run(args) do
     Code.ensure_all_loaded!([Viz, Viz.Exporter.Utils])
+
     with {:ok,
           %Options{
             analyzers: analyzers,
@@ -153,7 +154,7 @@ defmodule Mix.Tasks.Viz do
          {:ok, analyzers} <- load_analyzers(analyzers),
          {:ok, sources} <- parse_funs(sources),
          {:ok, sinks} <- parse_funs(sinks),
-         {:ok, filename} <- do_run(analyzers, exporter_module, filename, sources, sinks) do
+         {:ok, filename} <- Viz.run(analyzers, exporter_module, filename, sources, sinks) do
       Mix.Shell.IO.info("Call graph written to #{filename}!")
     else
       error -> print_result(error)
@@ -186,13 +187,6 @@ defmodule Mix.Tasks.Viz do
   end
 
   defp to_options({_opts, positional, flags}), do: {:error, :bad_options, positional, flags}
-
-  defp do_run(analyzers, exporter, filename, sources, sinks) do
-    analyzers
-    |> Enum.flat_map(& &1.analyze())
-    |> Enum.uniq()
-    |> Viz.export(exporter, filename, sources, sinks)
-  end
 
   def load_analyzers(strs) do
     strs

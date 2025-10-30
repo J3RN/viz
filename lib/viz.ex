@@ -4,21 +4,43 @@ defmodule Viz do
   """
 
   @typep pseudo_mfa :: {String.t(), atom(), integer()}
-  @type calls :: [{caller :: pseudo_mfa(), callee :: pseudo_mfa()}]
+  @type call :: {caller :: pseudo_mfa(), callee :: pseudo_mfa()}
+  @type analyzer :: module()
+  @type exporter :: module()
 
-  @spec export(
-          calls(),
-          module(),
+  @spec run(
+          [analyzer()],
+          exporter(),
           String.t() | nil,
           [pseudo_mfa()] | nil,
           [pseudo_mfa()] | nil
         ) :: {:ok, String.t()}
-  def export(calls, exporter, filename, sources, sinks) do
-    filename = filename || exporter.default_filename()
+  def run(analyzers, exporter, filename, sources, sinks) do
+    analyzers
+    |> analyze()
+    |> slice(sources, sinks)
+    |> export(exporter, filename)
+  end
 
+  @spec analyze([analyzer()]) :: [call()]
+  def analyze(analyzers) do
+    analyzers
+    |> Enum.flat_map(& &1.analyze())
+    |> Enum.uniq()
+  end
+
+  @spec slice([call()], [pseudo_mfa()] | nil, [pseudo_mfa()] | nil) :: [call()]
+  def slice(calls, sources, sinks) do
     calls
     |> then(&if(sources, do: source(sources, &1), else: &1))
     |> then(&if(sinks, do: sink(sinks, &1), else: &1))
+  end
+
+  @spec export([call()], exporter(), String.t() | nil) :: {:ok, String.t()}
+  def export(calls, exporter, filename) do
+    filename = filename || exporter.default_filename()
+
+    calls
     |> exporter.export()
     |> then(&File.write(filename, &1))
 
