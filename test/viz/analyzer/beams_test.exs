@@ -8,7 +8,7 @@ defmodule Viz.Analyzer.BeamsTest do
   setup_all do
     {calls, _output} =
       ExUnit.CaptureIO.with_io(fn ->
-        Analyzer.Beams.calls_in_file('test/support/Elixir.Foobar.beam')
+        Analyzer.Beams.calls_in_file(~c"test/support/Elixir.Foobar.beam")
       end)
 
     %{calls: calls}

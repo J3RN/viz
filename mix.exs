@@ -6,7 +6,8 @@ defmodule Viz.MixProject do
       app: :viz,
       version: "0.2.1",
       elixir: "~> 1.13",
-      deps: deps()
+      deps: deps(),
+      dialyzer: dialyzer()
     ]
   end
 
@@ -20,6 +21,12 @@ defmodule Viz.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    []
+    [{:dialyxir, "~> 1.4.6", only: [:dev, :test], runtime: false}]
+  end
+
+  defp dialyzer do
+    [
+      plt_file: {:no_warn, "priv/plts/dialyzer.plt"}
+    ]
   end
 end

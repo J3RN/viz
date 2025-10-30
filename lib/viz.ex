@@ -14,7 +14,7 @@ defmodule Viz do
           String.t() | nil,
           [pseudo_mfa()] | nil,
           [pseudo_mfa()] | nil
-        ) :: {:ok, String.t()}
+        ) :: {:ok, String.t()} | {:error, atom()}
   def run(analyzers, exporter, filename, sources, sinks) do
     analyzers
     |> analyze()
@@ -36,15 +36,17 @@ defmodule Viz do
     |> then(&if(sinks, do: sink(sinks, &1), else: &1))
   end
 
-  @spec export([call()], exporter(), String.t() | nil) :: {:ok, String.t()}
+  @spec export([call()], exporter(), String.t() | nil) :: {:ok, String.t()} | {:error, atom()}
   def export(calls, exporter, filename) do
     filename = filename || exporter.default_filename()
 
     calls
     |> exporter.export()
     |> then(&File.write(filename, &1))
-
-    {:ok, filename}
+    |> case do
+      :ok -> {:ok, filename}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   # Performs what is roughly program slicing, where the target variable in the
