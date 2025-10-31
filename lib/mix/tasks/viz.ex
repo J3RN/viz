@@ -268,6 +268,9 @@ defmodule Mix.Tasks.Viz do
       {:error, :bad_options, positional, flags} ->
         if(Enum.any?(positional), do: print_positional_errors(positional))
         if(Enum.any?(flags), do: print_flag_errors(flags))
+
+      {:error, reason} when is_atom(reason) ->
+        Mix.Shell.IO.error("Failed to write output: #{reason}")
     end
   end
 
