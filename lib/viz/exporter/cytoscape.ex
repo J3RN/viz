@@ -62,9 +62,9 @@ defmodule Viz.Exporter.Cytoscape do
       # Turn "Foo.Bar.Baz" into ["Foo", "Foo.Bar", "Foo.Bar.Baz"]
       m
       |> String.split(".")
-      |> Enum.reduce([], fn
-        mod, [] -> [{mod, nil}]
-        mod, [{parent, _} | _] = acc -> [{"#{parent}.#{mod}", parent} | acc]
+      |> Enum.scan(nil, fn
+        mod, nil -> {mod, nil}
+        mod, {parent, _grandparent} -> {"#{parent}.#{mod}", parent}
       end)
     end)
     |> MapSet.new()
