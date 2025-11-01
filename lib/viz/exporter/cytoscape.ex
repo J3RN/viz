@@ -31,8 +31,8 @@ defmodule Viz.Exporter.Cytoscape do
         "{\"group\": \"nodes\", \"data\": {\"id\": \"#{mod}\", \"label\": \"#{mod}\", \"type\": \"module\"#{if parent, do: ", \"parent\": \"#{parent}\"", else: ""}}}"
       end)
       |> Enum.concat(
-        Enum.map(functions, fn mfa = {mod, _f, _a} ->
-          "{\"group\": \"nodes\", \"data\": {\"id\": \"#{hash(mfa)}\", \"parent\": \"#{mod}\", \"label\": \"#{hash(mfa)}\", \"type\": \"function\"}}"
+        Enum.map(functions, fn mfa = {mod, f, a} ->
+          "{\"group\": \"nodes\", \"data\": {\"id\": \"#{hash(mfa)}\", \"parent\": \"#{mod}\", \"label\": \"#{fhash(f, a)}\", \"type\": \"function\"}}"
         end)
       )
 
