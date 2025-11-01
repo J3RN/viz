@@ -23,23 +23,23 @@ defmodule Viz.Exporter.Cytoscape do
 
   @impl Viz.Exporter
   def export(mappings) do
-    functions = Enum.flat_map(mappings, &Tuple.to_list/1)
-    modules = Enum.flat_map(functions, &[elem(&1, 0), elem(&1, 1)])
+    functions = extract_functions(mappings)
+    modules = extract_modules(functions)
 
     nodes =
-      Enum.map(modules, fn mod ->
-        "{group: 'nodes', data: {id: '#{mod}'}}"
+      Enum.map(modules, fn {mod, parent} ->
+        "{\"group\": \"nodes\", \"data\": {\"id\": \"#{mod}\", \"label\": \"#{mod}\", \"type\": \"module\"#{if parent, do: ", \"parent\": \"#{parent}\"", else: ""}}}"
       end)
       |> Enum.concat(
         Enum.map(functions, fn mfa = {mod, _f, _a} ->
-          "{group: 'nodes', data: {id: '#{hash(mfa)}', parent: '#{mod}'}}"
+          "{\"group\": \"nodes\", \"data\": {\"id\": \"#{hash(mfa)}\", \"parent\": \"#{mod}\", \"label\": \"#{hash(mfa)}\", \"type\": \"function\"}}"
         end)
       )
 
     edges =
       mappings
       |> Enum.map(fn {source, target} ->
-        "{group: 'edges', data: {source: '#{hash(source)}', target: '#{hash(target)}'}}"
+        "{\"group\": \"edges\", \"data\": {\"id\": \"#{hash(source)}->#{hash(target)}\", \"source\": \"#{hash(source)}\", \"target\": \"#{hash(target)}\"}}"
       end)
 
     """
@@ -47,5 +47,26 @@ defmodule Viz.Exporter.Cytoscape do
     #{Enum.join(nodes ++ edges, ",\n")}
     ]
     """
+  end
+
+  # Convert [{a, b}, {c, d}] to [a, b, c, d]
+  defp extract_functions(mappings) do
+    mappings
+    |> Enum.flat_map(&Tuple.to_list/1)
+    |> MapSet.new()
+  end
+
+  defp extract_modules(functions) do
+    functions
+    |> Enum.flat_map(fn {m, _f, _a} ->
+      # Turn "Foo.Bar.Baz" into ["Foo", "Foo.Bar", "Foo.Bar.Baz"]
+      m
+      |> String.split(".")
+      |> Enum.reduce([], fn
+        mod, [] -> [{mod, nil}]
+        mod, [{parent, _} | _] = acc -> [{"#{parent}.#{mod}", parent} | acc]
+      end)
+    end)
+    |> MapSet.new()
   end
 end
