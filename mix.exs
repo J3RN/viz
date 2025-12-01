@@ -4,7 +4,7 @@ defmodule Viz.MixProject do
   def project do
     [
       app: :viz,
-      version: "0.2.1",
+      version: "0.3.0",
       elixir: "~> 1.13",
       deps: deps(),
       dialyzer: dialyzer()
