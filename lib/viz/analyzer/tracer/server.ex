@@ -11,7 +11,7 @@ defmodule Viz.Analyzer.Tracer.Server do
         {remote, _meta, targetm, targetf, targeta},
         %Macro.Env{module: sourcem, function: {sourcef, sourcea}}
       )
-      when remote in [:remote_function, :remote_macro] do
+      when remote in [:remote_function, :remote_macro, :imported_function, :imported_macro] do
     do_log({sourcem, sourcef, sourcea}, {targetm, targetf, targeta})
   end
 
